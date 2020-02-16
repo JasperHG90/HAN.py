@@ -1,0 +1,9 @@
+# VSCode
+PyTorch-HAN.code-workspace
+.vscode
+
+# Byte-compiled python
+*.pyc
+
+# Ignore development folder
+dev
