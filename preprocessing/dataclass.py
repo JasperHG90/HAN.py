@@ -1,96 +1,67 @@
-# PyTorch Dataset class for Wikipedia articles processed by WikiEssentials
-# Will remove preprocessing steps from WikiEssentials and to all the preprocessing here
-# Remember to accept punctuation in syntok segmenter
+# PyTorch Dataset class for Hierarchical Attention Models
 
 from torch.utils.data import Dataset
-from utils.vectorizer import Vectorizer
+from vectorizer import Vectorizer
 import os
 import json
-
-from pydantic import BaseModel
+import numpy as np
 from typing import List
 
-class WikiDataset(Dataset):
+class HAND(Dataset):
 
-    def __init__(self, snippets: dict, targets: list, vectorizer: Vectorizer, top_n: int):
-
+    def __init__(self, snippets: List[str], targets: list, top_n: int, device="cpu", *kwargs):
         """
-        Instantiate a Dataset object for wikipedia data
-        :param snippets: dictionary with Wikipedia data, processed at snippet ("paragraph") level.
+        Instantiate a Dataset object for documents to be used with the HAN ("HAN Data" --> "HAND")
+        :param snippets: List of input documents. Documents are allowed to be of different lengths.
         :param targets: labels associated with each snippet
         :param vectorizer: the vectorizer used to process the data
         :param top_n: number of words/tokens to retain (e.g. top 10.000 words by frequency)
-        :return: object of class WikiDataset
+        :return: object of class HAND
         """
-
-        # Save inputs
-        self.snippets = snippets
-        self._vectorizer = vectorizer
-
         # Make lookup dictionary
-        self._vectorizer.from_dict(snippets, targets, top_n)
-
+        self._vectorizer, snippets = Vectorizer.from_dict(snippets, targets, top_n)
+        # Vectorize
+        self._snippets_vectorized = [self._vectorizer.to_sequences(doc, device=device) for doc in snippets]
         # Save targets
-        self._targets = targets
+        if isinstance(targets[0], int):
+            self._targets = targets
+            self._vocab_targets = False
+        else:
+            self._targets = [self._vectorizer.map_labels(target, device=device) for target in targets]
+            self._vocab_targets = True
+        # Length
+        self._len = len(snippets)
 
     @staticmethod
     def load_vectorizer(path: str):
-
         # Assert file exists
         assert os.path.exists(path), "Path '{}' does not exist".format(path)
-
         # Load
         Vectorizer.from_serializable(path)
 
     @staticmethod
     def load_data(path: str):
-
         # Assert file exists
         assert os.path.exists(path), "Path '{}' does not exist".format(path)
 
-    @staticmethod
-    def clean_text():
-
-        """
-        Clean bunch of input texts for standard stuff
-        :param remove_digits:
-        :param to_lower:
-        :param remove_special:
-        :param fix_contractions:
-        :param fix_spelling:
-        """
-
-        pass
+    # TODO:
+    #  - to serializable
+    #  - from seralizable
+    #  - ...
+    #  - label mapping
 
     def __getitem__(self, index: int):
         """
         the primary entry point method for PyTorch datasets. PyTorch needs this to be able to access data for training
         :param index (int): the index to the data point
         :return: a dictionary holding the data point's features (x_data) and label (y_target)
-        """
-        row = self._target_df.iloc[index]
+        """ 
+        return()
 
-        review_vector = \
-            self._vectorizer.vectorize(row.review)
-
-        rating_index = \
-            self._vectorizer.rating_vocab.lookup_token(row.rating)
-
-        return {'x_data': review_vector,
-                'y_target': rating_index}
 
     def __len__(self):
-
         """Standard method to get length (i.e. number of snippets)"""
-
-        #return self._target_size
-        pass
-
-    def __print__(self):
-
-        """Print method """
-
-        pass
+        return self._len
 
     def len_batches(self, batch_size: int)->"int":
         """
