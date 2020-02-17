@@ -151,7 +151,7 @@ class sentence_encoder(nn.Module):
 #%% HAN
 
 class HAN(nn.Module):
-    def __init__(self, weights, hidden_size_words, hidden_size_sent, batch_size, num_classes, device = "cpu",
+    def __init__(self, vocab_size, embedding_size, hidden_size_words, hidden_size_sent, batch_size, num_classes, device = "cpu",
                  dropout_prop = 0):
         """
         Implementation of a Hierarhical Attention Network (HAN).
@@ -165,12 +165,12 @@ class HAN(nn.Module):
         super(HAN, self).__init__()
         self._hidden_size_words = hidden_size_words
         self._hidden_size_sent = hidden_size_sent
-        self._embedding_dim = weights.shape
+        self._embedding_dim = (vocab_size, embedding_size)
         self._num_classes = num_classes
         self._batch_size = batch_size
         self._dropout_prop = dropout_prop
         # Embedding
-        self.embedding = Embedding_FastText(weights, freeze_layer = True)
+        self.embedding = nn.Embedding(vocab_size, embedding_size)
         # Set up word encoder
         self._word_encoder = word_encoder(self._embedding_dim[1], self._hidden_size_words)
         # Set up sentence encoder
