@@ -4,7 +4,6 @@ import numpy as np
 from vocabulary import Vocabulary
 import json
 import syntok.segmenter as segmenter
-import torch
 
 class Vectorizer(object):
 
@@ -34,31 +33,29 @@ class Vectorizer(object):
         # Return
         return(text_sequence)
 
-    def to_sequences(self, texts: list, device = "cpu"):
+    def to_sequences(self, texts: list):
         """
         Take many texts, turn into sequences and make into matrix
         :param texts: list of lists of texts to vectorize
-        :param device: either one of "cpu" or "cuda"
         """
         # For each document, vectorize the list entries (sentences)
-        texts_as_sequences = [torch.tensor(self.to_sequence(sentence)).type(torch.long).to(device) for sentence in texts]
+        texts_as_sequences = [self.to_sequence(sentence) for sentence in texts]
         # Return
         return(texts_as_sequences)
 
-    def map_label(self, label):
+    def map_label(self, label: str):
         """
         Map a single label
         :param label: label to vectorize
         """
         return self._vocabulary_labels.lookup_token(label)
 
-    def map_labels(self, labels: list, device = "cpu"):
+    def map_labels(self, labels: list):
         """
         Take labels and turn vectorize
         :param labels: outcome labels, as list
-        :param device: either one of "cpu" or "cuda"
         """
-        labels_vectorized = [torch.tensor(self.map_label(label)).type(torch.long).to(device) for label in labels]
+        labels_vectorized = [self.map_label(label) for label in labels]
         return(labels_vectorized)
         
     def to_serializable(self, path: str):
