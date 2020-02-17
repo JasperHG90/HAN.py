@@ -151,7 +151,14 @@ class sentence_encoder(nn.Module):
 #%% HAN
 
 class HAN(nn.Module):
-    def __init__(self, vocab_size, embedding_size, hidden_size_words, hidden_size_sent, batch_size, num_classes, device = "cpu",
+    def __init__(self, 
+                 vocab_size: int, 
+                 embedding_size: int, 
+                 hidden_size_words: int, 
+                 hidden_size_sent: int, 
+                 batch_size: int, 
+                 num_classes: int, 
+                 device = "cpu",
                  dropout_prop = 0):
         """
         Implementation of a Hierarhical Attention Network (HAN).
@@ -175,8 +182,6 @@ class HAN(nn.Module):
         self._word_encoder = word_encoder(self._embedding_dim[1], self._hidden_size_words)
         # Set up sentence encoder
         self._sentence_encoder = sentence_encoder(self._hidden_size_words * 2, self._hidden_size_sent)
-        # Batch norm
-        self._bn = nn.BatchNorm1d(self._hidden_size_sent * 2)
         # Set up a linear layer
         self._linear1 = nn.Linear(self._hidden_size_sent * 2, self._num_classes)
     def forward(self, seqs, seq_lens, hid_state_word, hid_state_sent, return_attention_weights = False):
@@ -214,10 +219,8 @@ class HAN(nn.Module):
                 word_weights.append(hid_state[1].data)
                 if hid_sent is not None:
                     sentence_weights.append(hid_sent[1].data)
-        # Apply batch norm
-        out_sent = self._bn(out_sent.squeeze(0))
         # Apply dropout
-        out_sent_dropout = F.dropout(out_sent, p=self._dropout_prop)
+        out_sent_dropout = F.dropout(out_sent.squeeze(0), p=self._dropout_prop)
         # Linear layer & softmax
         prediction_out = F.softmax(self._linear1(out_sent_dropout), dim = 1)
         # Return
