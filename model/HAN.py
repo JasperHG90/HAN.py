@@ -110,7 +110,7 @@ class word_encoder(nn.Module):
         # Bidirectional GRU
         output_gru, last_hidden_state = self.GRU(inputs_embedded)
         # Unpack packed sequence
-        output_padded, output_lengths = pad_packed_sequence(output_gru, batch_first=True)
+        output_padded, _ = pad_packed_sequence(output_gru, batch_first=True)
         # Attention
         output_attention, att_weights = self.attention(output_padded)
         # Return
@@ -193,13 +193,14 @@ class HAN(nn.Module):
         """
         # Placeholders
         batched_sentences = None
-        hid_sent = None
+        batch_length = len(seqs)
         # If return attention weights
         if return_attention_weights:
             word_weights = []
-            sentence_weights = []
         # For each, do ...
-        for seq, seq_len in zip(seqs,seq_lens):
+        for i, seqdata in enumerate(zip(seqs,seq_lens)):
+            # Unzip
+            seq, seq_len = seqdata
             # Embedding
             embedded = self.embedding(seq)
             # Pack sequences
@@ -217,14 +218,17 @@ class HAN(nn.Module):
             # Cat the attention weights
             if return_attention_weights:
                 word_weights.append(hid_state[1].data)
-                if hid_sent is not None:
-                    sentence_weights.append(hid_sent[1].data)
+                # If last sentence
+                if i == batch_length:
+                    sentence_weights = hid_sent[1].data
         # Apply dropout
         out_sent_dropout = F.dropout(out_sent.squeeze(0), p=self._dropout_prop)
         # Linear layer & softmax
         prediction_out = F.softmax(self._linear1(out_sent_dropout), dim = 1)
         # Return
         if return_attention_weights:
+            # Compute attention weights for words and sentences
+            
             return(prediction_out, [word_weights, sentence_weights])
         else:
             return(prediction_out)
