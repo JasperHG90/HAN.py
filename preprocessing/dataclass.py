@@ -78,8 +78,6 @@ class HAND(Dataset):
         train_label = [self._targets[index] for index in train_idx]
         val_data = [self._snippets[index] for index in test_idx]
         val_label = [self._targets[index] for index in test_idx]
-        print(train_data)
-        print(train_label)
         # Return HAND
         return (HAND(train_data, train_label, self._vectorizer._top_n, self._device),
                 HAND(val_data, val_label, self._vectorizer._top_n, self._device))
