@@ -16,6 +16,6 @@ First, we feed the input sequences to a word encoder, which is a bidirectional G
 
 We  apply  attention  to  each  of  the  intermittent  hidden states  to  obtain  a  sentence  vector  for  each  sentence.  The sentence vectors are then concatenated together. This serves as  the  input  to  the  sentence  encoder  (also  a  bidirectional GRU). We again apply the attention mechanism. The output of this process is fed to a softmax classifier that predicts the topic of the document. See image below for a schematic overview of the implementation in this module:
 
-<img src="img/implementation.png"></img>
+<img src="img/implementation.png" width=500></img>
 
 
