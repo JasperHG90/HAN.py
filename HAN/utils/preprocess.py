@@ -116,10 +116,11 @@ class Vectorizer(object):
                 doc = []
                 # For each sentence, get tokens unless it is punctuation or a number
                 for sentence in snippet.sents:
-                    current_sentence = " ".join([token.text for token in sentence if token.pos_ not in ["NUM", "PUNCT"]])
-                    doc.append(current_sentence)
+                    current_sentence [token.text for token in sentence if token.pos_ not in ["NUM", "PUNCT"]]
                     # Add to vocab
-                    vocabulary_text.add_many(current_sentence.split())
+                    vocabulary_text.add_many(current_sentence)
+                    # Add to doc
+                    doc.append(" ".join(current_sentence))
                 # Add to segmented texts
                 txt_segmented.append(doc)
         # Return class
