@@ -10,7 +10,7 @@ Through its use of the Attention mechanism, the HAN can  retain  some  of  the  
 
 The  HAN  consists  of  five  separate  modules (see image below. Image is taken from the paper by Yang et al.). 
 
-<img src="img/attn.png" width=350></img>
+<img src="img/attn.png" width=650></img>
 
 First, we feed the input sequences to a word encoder, which is a bidirectional Gated Recurrent Unit (GRU). Like the LSTM, the GRU is a recurrent neural network  that  allows  us  to  carry  information  across  long sequences  of  input  data.  However,  the  architecture  of  the GRU is simpler than the LSTM and as such is considerably faster. By using a bidirectional GRU, we can use informationby scanning the sequence from left to right and vice versa.
 
