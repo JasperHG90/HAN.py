@@ -110,7 +110,7 @@ input_vectorized = [vectorizer.to_sequences(doc) for doc in snippets]
 labels_vectorized = vectorizer.map_labels(labels)
 ```
 
-Note that the snippets are of different lengths. This is not a problem, but you may want to cap your inpit documents, especially if most of the relevant information appears early on in a document (this is a hyperparameter).
+Note that the snippets are of different lengths. This is not a problem, but you may want to cap your input documents, especially if most of the relevant information appears early on in a document (this is a hyperparameter).
 
 We next set up the HAN, the optimizer and the loss function:
 
