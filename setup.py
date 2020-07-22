@@ -1,25 +1,20 @@
-import setuptools
+from setuptools import setup, find_packages
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-
-setuptools.setup(
-    name="PyTorch-HAN",
-    version="0.0.1",
-    author="Jasper Ginn",
-    author_email="jasperginn@gmail.com",
+setup(
+    name="HAN",
+    version="0.1"
     description="Train a Hierarchical Attention Model (HAN) on textual data.",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="placeholder",
-    packages=setuptools.find_packages(),
-    install_requires=["requests", "PyTorch"],
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+    url='https://github.com/FinTxt/webhose-nlp',
+    author='Jasper Ginn',
+    author_email='jasperginn@gmail.com',
+    license='GPL-4',
+    packages=find_packages(exclude="__pycache__"),
+    install_requires=[
+        "pytorch>=1.3.1",
+        "spacy>=2.2.0,<3.0.0",
+        "en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.1/en_core_web_sm-2.3.1.tar.gz",
+        "numpy"
     ],
-    package_data={'src.data': ['*.json']},
-    include_package_data=True,
+    zip_safe=False,
     python_requires='>=3.6'
 )

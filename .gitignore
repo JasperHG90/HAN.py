@@ -8,3 +8,7 @@ PyTorch-HAN.code-workspace
 # Ignore development files
 dev.py
 preprocessing/dev.py
+
+testing
+__pycache__
+dummydata.json

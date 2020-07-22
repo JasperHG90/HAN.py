@@ -15,12 +15,9 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
-from torch.nn.utils.rnn import pad_sequence
 from torch.nn.utils.rnn import pad_packed_sequence
 from torch.nn.utils.rnn import pack_padded_sequence
 from torch.autograd import Variable
-import numpy as np
-from sklearn import metrics
 # This is a technical thing
 # See stackoverflow:
 #   - PyTorch: training with GPU gives worse error than training the same thing with CPU
@@ -33,7 +30,6 @@ PyTorch modules:
         2. word_encoder: applies a bidirectional GRU and attention to input sentences.
         3. sentence_encoder: applies a bidirectional GRU and attention to output of the word encoder
         4. HAN: implementation of the Hierarchical Attention Network. Calls modules 1-3.
-
     I've taken some inspiration from the following existing implementations:
         - https://github.com/uvipen/Hierarchical-attention-networks-pytorch
         - https://github.com/pandeykartikey/Hierarchical-Attention-Network
@@ -45,9 +41,7 @@ class Attention(nn.Module):
     def __init__(self, hidden_size):
         """
         Attention mechanism.
-
         :param hidden_size: size of the hidden states of the bidirectional GRU
-
         :seealso: 
             - https://pytorch.org/docs/stable/nn.html#gru for the output size of the GRU encoder (bidirectional)
             - Yang, Z., Yang, D., Dyer, C., He, X., Smola, A., & Hovy, E. (2016, June). Hierarchical attention networks 
@@ -64,7 +58,6 @@ class Attention(nn.Module):
     def forward(self, hidden_states):
         """
         Forward pass of the attention mechanism
-
         :param hidden_states: The hidden states of the input sequence at time T
         
         :return: context vector (weighted GRU output) and attention weights
@@ -88,7 +81,6 @@ class word_encoder(nn.Module):
         """
         Word encoder. This part takes a minibatch of input sentences, applies a GRU and attention
          and returns the sequences.
-
         :param embedding_size: Size of the word embedding
         :param hidden_size: number of hidden units in the word-level GRU
         """
@@ -102,7 +94,6 @@ class word_encoder(nn.Module):
     def forward(self, inputs_embedded, hid_state):
         """
         :param inputs_embedded: word embeddings of the mini batch at time t (sentence x seq_length)
-
         :return: tuple containing:
             (1) weighted GRU annotations (GRU output weighted by the attention vector)
             (2) [final hidden state of GRU (unweighted), attention weights]
@@ -110,7 +101,7 @@ class word_encoder(nn.Module):
         # Bidirectional GRU
         output_gru, last_hidden_state = self.GRU(inputs_embedded)
         # Unpack packed sequence
-        output_padded, _ = pad_packed_sequence(output_gru, batch_first=True)
+        output_padded, output_lengths = pad_packed_sequence(output_gru, batch_first=True)
         # Attention
         output_attention, att_weights = self.attention(output_padded)
         # Return
@@ -123,7 +114,6 @@ class sentence_encoder(nn.Module):
         """
         Sentence encoder. This part takes as its input a minibatch of documents which have been created by
          the word encoder. It applies a GRU, attention and returns the weighted GRU output.
-
         :param word_hidden_size: The number of hidden units of the word encoder.
         :param hidden_size: The number of hidden units used for the sentence encoder.
         """
@@ -137,7 +127,6 @@ class sentence_encoder(nn.Module):
     def forward(self, encoder_output, hid_state):
         """
         :param encoder_output: output of the word encoder.
-
         :return: weighted annotations created by the sentence GRU
         """
         # Bidirectional GRU
@@ -161,9 +150,9 @@ class HAN(nn.Module):
                  device = "cpu",
                  dropout_prop = 0):
         """
-        Implementation of a Hierarhical Attention Network (HAN).
-
-        :param weights: Pre-trained embedding weights
+        Implementation of a Hierarchical Attention Network (HAN).
+        :param vocab_size: Size of the input vocabulary
+        :param embedding_size: Size of the word embedding
         :param hidden_size_words: number of hidden units for the word encoder.
         :param hidden_size_sent: number of hidden units for the sentence encoder.
         :batch_size: size of the minibatches passed to the HAN.
@@ -228,7 +217,6 @@ class HAN(nn.Module):
         # Return
         if return_attention_weights:
             # Compute attention weights for words and sentences
-            
             return(prediction_out, [word_weights, sentence_weights])
         else:
             return(prediction_out)
