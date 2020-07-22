@@ -1,6 +1,6 @@
 # HAN.py
 
-This python module contains an implementation of a Hierarchical Attention Network (HAN). You can find details on the model in the following paper:
+This python module contains an implementation of a Hierarchical Attention Network (HAN) in PyTorch. You can find details on the model in the following paper:
 
 >Yang, Z., Yang, D., Dyer, C., He, X., Smola, A., & Hovy, E. (2016, June). Hierarchical attention >networks for document classification. In Proceedings of the 2016 conference of the North American >chapter of the association for computational linguistics: human language technologies (pp. >1480-1489).
 
@@ -18,4 +18,144 @@ We  apply  attention  to  each  of  the  intermittent  hidden states  to  obtain
 
 <img src="img/implementation.png" width=500 class="center"></img>
 
+## Installation
 
+Clone this repository, go to the repository in a terminal, and execute:
+
+```shell
+pip install .
+```
+
+## Example
+
+This example uses a subset of the [Wikipedia Vital Articles list, level 4](https://github.com/JasperHG90/WikiVitalArticles). It contains three labels. These labels represent top-level categories to which the articles belong.
+
+First, download the dataset on your device:
+
+```shell
+wget https://raw.githubusercontent.com/JasperHG90/wikipedia-sample/master/vital_articles_sample.txt
+```
+
+Next, load the required libraries and define the settings we will use for the model:
+
+```python
+from HAN import train_HAN, HAN, predict_HAN, Vectorizer
+from torch import optim
+import torch
+import torch.nn as nn
+import numpy as np
+import json
+from argparse import Namespace
+
+# Define model settings
+myhan_settings = Namespace(
+    num_tokens=3000,
+    embedding_dim=128,
+    hidden_dim_word_encoder=32,
+    hidden_dim_sentence_encoder=32,
+    dropout=0.2,
+    learning_rate=0.005,
+    validation_split=.1,
+    epochs=3,
+    batch_size=64,
+    device="cpu"
+)
+```
+
+We can load the dataset as follows:
+
+```python
+# Load data
+with open("vital_articles_sample.txt", "r") as handle:
+    lines = [line.strip("\n").split("\t") for line in handle]
+
+# Texts in list, labels in list
+texts = [el[0] for el in lines]
+labels = [el[1] for el in lines]
+
+# Unique classes
+nclasses = len(np.unique(labels))
+```
+
+The HAN.py library contains a `Vectorizer` class that preprocesses the data in the proper format. Note that this class is not really optimized for speed, but you can easily save the vectorizer for later use. The object 'snippets' contains the input documents which are now split up into sentences.
+
+```python
+# Process input texts
+vectorizer, snippets = Vectorizer.from_dict(texts, labels, 
+                                            top_n=myhan_settings.num_tokens)
+# Save the vectorizer to disk
+vectorizer.to_serializable("vectorizer_wiki.json")
+# Save snippets
+with open("snippets.json", "w") as handle:
+    json.dump(snippets, handle)
+```
+
+You may load the vectorizer as follows:
+
+```python
+# Load vectorizer and snippets
+vectorizer = Vectorizer.from_serializable("vectorizer_wiki.json")
+with open("snippets.json", "r") as handle:
+    snippets = json.load(handle)
+```
+
+We can now vectorize the labels and the snippets.
+
+```python
+
+# Vectorize input texts
+input_vectorized = [vectorizer.to_sequences(doc) for doc in snippets]
+
+# Vectorize labels
+labels_vectorized = vectorizer.map_labels(labels)
+```
+
+Note that the snippets are of different lengths. This is not a problem, but you may want to cap your inpit documents, especially if most of the relevant information appears early on in a document (this is a hyperparameter).
+
+We next set up the HAN, the optimizer and the loss function:
+
+```python
+# Set up HAN
+myhan = HAN(myhan_settings.num_tokens, myhan_settings.embedding_dim,
+            myhan_settings.hidden_dim_word_encoder, myhan_settings.hidden_dim_sentence_encoder, 
+            myhan_settings.batch_size, nclasses, myhan_settings.device, myhan_settings.dropout)
+# To device
+myhan.to(myhan_settings.device)
+# Set up optimizer
+optimizer = optim.Adam(myhan.parameters(), lr=myhan_settings.learning_rate)
+# Loss function
+criterion = nn.CrossEntropyLoss()
+```
+
+We can train and save the model as follows:
+
+```python
+# Call training function
+myhan, history = train_HAN(input_vectorized, labels_vectorized, myhan, optimizer, criterion,
+                            epochs=myhan_settings.epochs, val_split=myhan_settings.validation_split, 
+                            batch_size = myhan_settings.batch_size,device = myhan_settings.device)
+
+# Save the model weights
+torch.save(myhan.state_dict(), "myhan.pt")
+```
+
+Then, we may load the model by setting up a ne HAN object and loading the parameter weights from the file:
+
+```python
+# Load the model weights
+myhan = HAN(myhan_settings.num_tokens, myhan_settings.embedding_dim,
+            myhan_settings.hidden_dim_word_encoder, myhan_settings.hidden_dim_sentence_encoder, 
+            myhan_settings.batch_size, nclasses, myhan_settings.device, myhan_settings.dropout)
+myhan.load_state_dict(torch.load("myhan.pt", map_location=torch.device(myhan_settings.device)))
+```
+
+You can make predictions as follows:
+
+```python
+# Predict on new texts
+yhat, ytrue = predict_HAN(myhan, input_vectorized, classes_vectorized, myhan_settings.batch_size)
+
+# Get accuracy etc
+from sklearn.metrics import classification_report
+print(classification_report(ytrue, yhat))
+```
