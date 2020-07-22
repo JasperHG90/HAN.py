@@ -159,3 +159,7 @@ yhat, ytrue = predict_HAN(myhan, input_vectorized, classes_vectorized, myhan_set
 from sklearn.metrics import classification_report
 print(classification_report(ytrue, yhat))
 ```
+
+## Using pretrained Embeddings
+
+After you initialize the model, you can replace the 'embedding' layer with another embedding layer (such as a pretrained embedding). Let's say that you are using the [FastText embeddings](https://fasttext.cc/docs/en/english-vectors.html). You can download e.g. the 'wiki-news-300d-1M.vec.zip', and use the vectorizer to filter the embedding for those words that occur in your dataset.
