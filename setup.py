@@ -4,7 +4,7 @@ setup(
     name="HAN",
     version="0.1"
     description="Train a Hierarchical Attention Model (HAN) on textual data.",
-    url='https://github.com/FinTxt/webhose-nlp',
+    url='https://github.com/FinTxt/HAN.py',
     author='Jasper Ginn',
     author_email='jasperginn@gmail.com',
     license='GPL-4',

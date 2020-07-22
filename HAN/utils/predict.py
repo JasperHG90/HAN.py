@@ -1,5 +1,5 @@
 # Predict HAN outputs
-from utils.train import process_batch, DocData
+from HAN.utils.train import process_batch, DocData
 import torch
 import numpy as np
 
