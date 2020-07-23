@@ -39,7 +39,7 @@ wget https://raw.githubusercontent.com/JasperHG90/wikipedia-sample/master/vital_
 Next, load the required libraries and define the settings we will use for the model:
 
 ```python
-from HAN import train_HAN, HAN, predict_HAN, Vectorizer
+from HAN import train_HAN, HAN, predict_HAN, Vectorizer, segmenter
 from torch import optim
 import torch
 import torch.nn as nn
@@ -77,12 +77,14 @@ labels = [el[1] for el in lines]
 nclasses = len(np.unique(labels))
 ```
 
-The HAN.py library contains a `Vectorizer` class that preprocesses the data in the proper format. Note that this class is not really optimized for speed, but you can easily save the vectorizer for later use. The object 'snippets' contains the input documents which are now split up into sentences.
+The HAN.py library contains a `segmenter` function that preprocesses the data such that each input document is split up into sentences. We also ignore punctuation and numbers. Note that this function is not really optimized for speed, but you can write your own segmenter function and use that on larger texts. The library also contains a `Vectorizer` class that can be saved to a file for later use. 
 
 ```python
+# Segment texts
+snippets = segmenter(texts)
 # Process input texts
-vectorizer, snippets = Vectorizer.from_dict(texts, labels, 
-                                            top_n=myhan_settings.num_tokens)
+vectorizer = Vectorizer.from_dict(snippets, labels, 
+                                  top_n=myhan_settings.num_tokens)
 # Save the vectorizer to disk
 vectorizer.to_serializable("vectorizer_wiki.json")
 # Save snippets
