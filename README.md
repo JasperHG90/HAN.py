@@ -141,7 +141,7 @@ myhan, history = train_HAN(input_vectorized, labels_vectorized, myhan, optimizer
 torch.save(myhan.state_dict(), "myhan.pt")
 ```
 
-Then, we may load the model by setting up a ne HAN object and loading the parameter weights from the file:
+Then, we may load the model by setting up a new HAN object and loading the parameter weights from the file:
 
 ```python
 # Load the model weights
