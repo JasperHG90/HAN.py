@@ -28,6 +28,8 @@ pip install .
 
 ## Example
 
+A GPU version of this example may be found in this [Google Colab notebook](https://colab.research.google.com/drive/1meMEMOTvNv4-CK3NAa793eIYn3GOFhl-?usp=sharing).
+
 This example uses a subset of the [Wikipedia Vital Articles list, level 4](https://github.com/JasperHG90/WikiVitalArticles). It contains three labels. These labels represent top-level categories to which the articles belong.
 
 First, download the dataset on your device:
