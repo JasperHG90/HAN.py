@@ -2,7 +2,30 @@ import numpy as np
 import json
 import spacy
 from collections import Counter
+from typing import List, Iterator
 nlp = spacy.load("en_core_web_sm")
+
+# Segmenter function
+def segmenter(input_texts: List[str]) -> List[List[str]]:
+    """
+    Segment the input texts s.t. each input snippet is split into sentences.
+    :param input_texts: List of input documents
+    :return: List containing the segmented documents
+    """
+    # To hold segmented texts
+    txt_segmented = []
+    # Do nlp on texts
+    with nlp.disable_pipes("ner"):
+        for snippet in nlp.pipe(input_texts):
+            # To hold sentences
+            doc = []
+            # For each sentence, get tokens unless it is punctuation or a number
+            for sentence in snippet.sents:
+                current_sentence = [token.text for token in sentence if token.pos_ not in ["NUM", "PUNCT"]]
+                # Add to doc
+                doc.append(" ".join(current_sentence))
+            txt_segmented.append(doc)
+    return doc
 
 # Input words output np arrays of vocabulary positions
 class Vectorizer(object):
@@ -93,38 +116,26 @@ class Vectorizer(object):
         return(cls(vts, vls, inFile["top_n"]))
 
     @classmethod
-    def from_dict(cls, snippets: list, targets: list, top_n: int):
+    def from_dict(cls, snippets: List[List[str]], targets: List[str], top_n: int):
         """
         Instantiate a vectorizer class from a data file
-        :param path_snippets: list/dict of text snippets
+        :param path_snippets: list/dict of text snippets. These should be segmented by sentence.
+        :param targets: list of document labels
         :param top_n: select the n most occurring words
-        
         :return: tuple containing the vectorizer class and segmented snippets
         """
         # Initialize vocabularies for labels
         vocabulary_text = Vocabulary(use_unknown_token = True)
         vocabulary_labels = Vocabulary(use_unknown_token = False)
-        # To hold segmented texts
-        txt_segmented = []
         # Add labels to vocabulary
         for l in set(targets):
             vocabulary_labels.add_token(l)
-        # Do nlp on texts
-        with nlp.disable_pipes("ner"):
-            for snippet in nlp.pipe(snippets):
-                # To hold sentences
-                doc = []
-                # For each sentence, get tokens unless it is punctuation or a number
-                for sentence in snippet.sents:
-                    current_sentence = [token.text for token in sentence if token.pos_ not in ["NUM", "PUNCT"]]
-                    # Add to vocab
-                    vocabulary_text.add_many(current_sentence)
-                    # Add to doc
-                    doc.append(" ".join(current_sentence))
-                # Add to segmented texts
-                txt_segmented.append(doc)
+        # For each set of snippets, add to vocabulary
+        for snippet in snippets:
+            for sentence in snippet:
+                vocabulary_text.add_many(sentence.split())
         # Return class
-        return(cls(vocabulary_text, vocabulary_labels, top_n), txt_segmented)
+        return cls(vocabulary_text, vocabulary_labels, top_n)
 
 # Create a vocabulary from input texts
 class Vocabulary(object):
