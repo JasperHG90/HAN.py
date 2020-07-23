@@ -25,7 +25,7 @@ def segmenter(input_texts: List[str]) -> List[List[str]]:
                 # Add to doc
                 doc.append(" ".join(current_sentence))
             txt_segmented.append(doc)
-    return doc
+    return txt_segmented
 
 # Input words output np arrays of vocabulary positions
 class Vectorizer(object):
