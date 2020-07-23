@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="HAN",
-    version="0.1",
+    version="0.2",
     description="Train a Hierarchical Attention Model (HAN) on textual data.",
     url='https://github.com/FinTxt/HAN.py',
     author='Jasper Ginn',
